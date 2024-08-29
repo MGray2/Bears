@@ -1,32 +1,12 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <stdio.h>
 #include <stdarg.h>
-#include "models.hpp"
+#include <cstring>
 
 namespace tools
 {
-    // returns item type as a character for use in switch cases
-    char itemType(const std::shared_ptr<Item> &item)
-    {
-        if (auto armor = std::dynamic_pointer_cast<Armor>(item))
-        {
-            return 'a'; // armor detected
-        }
-        else if (auto weapon = std::dynamic_pointer_cast<Weapon>(item))
-        {
-            return 'w'; // weapon detected
-        }
-        else if (auto ranged = std::dynamic_pointer_cast<Ranged>(item))
-        {
-            return 'r'; // ranged weapon detected
-        }
-        else
-        {
-            return 'z';
-        }
-    }
-
     /* Prints message suitable for debug purposes,
 use '__FILE__' for file argument.
 use '__LINE__' for line argument.

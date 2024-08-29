@@ -1,8 +1,13 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <iostream>
 
-// Items
+/* Item
+Constructor arguments include:
+
+name, qty, desc.
+*/
 class Item
 {
 public:
@@ -12,6 +17,8 @@ public:
 
     // Constructor
     Item(std::string name, short qty, std::string desc) : name(name), quantity(qty), description(desc) {}
+
+    virtual ~Item() {}; // Destructor
 };
 
 /* Armor, subclass of Item.
@@ -29,6 +36,8 @@ public:
 
     // Constructor
     Armor(std::string name, short qty, std::string desc, short health, short health_max, short value) : Item(name, qty, desc), health(health), health_max(health_max), value(value) {}
+
+    virtual ~Armor() {}; // Destructor
 
     void check_broken()
     {
@@ -55,6 +64,8 @@ public:
 
     // Constructor
     Weapon(std::string name, short qty, std::string desc, short dmg_min, short dmg_max, short ms_chance, short crit_chance) : Item(name, qty, desc), damage_min(dmg_min), damage_max(dmg_max), miss_chance(ms_chance), critical_chance(crit_chance) {}
+
+    virtual ~Weapon() {}; // Destructor
 };
 
 /* Ranged Weapon, subclass of Weapon.
@@ -73,6 +84,8 @@ public:
     Ranged(std::string name, short qty, std::string desc, short dmg_min, short dmg_max, short ms_chance, short crit_chance, short mag, short brst)
         : Weapon(name, qty, desc, dmg_min, dmg_max, ms_chance, crit_chance), magazine(mag), burst(brst) {}
 
+    virtual ~Ranged() {}; // Destructor
+
     void shoot()
     {
         magazine -= burst;
@@ -83,9 +96,50 @@ public:
         return magazine;
     }
 
+    // evaluates if ranged weapon's magazine is empty
     bool mag_empty()
     {
         return magazine == 0;
+    }
+};
+
+class Inventory
+{
+public:
+    std::vector<std::shared_ptr<Item>> items;
+
+    // Add item to inventory
+    void addItem(std::shared_ptr<Item> item)
+    {
+        items.push_back(item);
+    }
+
+    // Remove item from inventory by index
+    void removeItem(int index)
+    {
+        if (index >= 0 && index < items.size())
+        {
+            items.erase(items.begin() + index);
+        }
+    }
+
+    // Get item by index
+    std::shared_ptr<Item> getItem(int index) const
+    {
+        if (index >= 0 && index < items.size())
+        {
+            return items[index];
+        }
+        return nullptr;
+    }
+
+    // Display all items
+    void displayItems() const
+    {
+        for (const auto &item : items)
+        {
+            std::cout << "Name: " << item->name << ", Quantity: " << item->quantity << ", Description: " << item->description << std::endl;
+        }
     }
 };
 
@@ -109,7 +163,7 @@ public:
 /* The player character
 Constructor arguments include:
 
-name, health, max health, armor, weapon, exp, level, inventory
+name, health, max health, armor, weapon, xp, max xp, inventory
 */
 class Player
 {
@@ -119,12 +173,14 @@ public:
     short health_max;
     Armor armor;
     Weapon weapon;
-    unsigned int exp;
-    int level;
-    std::vector<std::shared_ptr<Item>> inventory;
+    unsigned int xp;
+    unsigned int xp_max;
+    Inventory inventory;
 
     // Constructor
-    Player(std::string name, short health, short health_max, Armor armor, Weapon weapon, unsigned int exp, short level, std::vector<std::shared_ptr<Item>> inventory) : name(name), health_max(health_max), armor(armor), weapon(weapon), exp(exp), level(level), inventory(inventory) {}
+    Player(std::string name, short health, short health_max, Armor armor, Weapon weapon, unsigned int xp, unsigned int xp_max, Inventory inventory) : name(name), health_max(health_max), armor(armor), weapon(weapon), xp(xp), xp_max(xp_max), inventory(inventory) {}
+
+    virtual ~Player() {}; // Destructor
 
     void harm(short amount)
     {
@@ -162,3 +218,24 @@ public:
         weapon = item;
     }
 };
+
+// returns item type as a character for use in switch cases
+char itemType(const std::shared_ptr<Item> &item)
+{
+    if (auto armor = std::dynamic_pointer_cast<Armor>(item))
+    {
+        return 'a'; // armor detected
+    }
+    else if (auto weapon = std::dynamic_pointer_cast<Weapon>(item))
+    {
+        return 'w'; // weapon detected
+    }
+    else if (auto ranged = std::dynamic_pointer_cast<Ranged>(item))
+    {
+        return 'r'; // ranged weapon detected
+    }
+    else
+    {
+        return 'z';
+    }
+}
